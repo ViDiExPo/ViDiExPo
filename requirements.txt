@@ -1,0 +1,63 @@
+# ViDiExPo Requirements
+# Python >= 3.10
+# CUDA 11.8 recommended (matches cudatoolkit=11.8.0 in environment.yml)
+
+# ---- Core deep learning ----
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# ---- Diffusion pipeline (SDXL backbone) ----
+diffusers>=0.26.0
+transformers>=4.37.0
+accelerate>=0.26.0
+safetensors>=0.4.0
+huggingface_hub>=0.20.0
+
+# ---- Image processing ----
+albumentations>=1.4.0          # augmentation (Section 3.1.6)
+opencv-python>=4.9.0
+Pillow>=10.0.0
+scikit-image>=0.22.0
+imageio>=2.34.0
+imageio-ffmpeg>=0.4.9
+
+# ---- Face analysis ----
+insightface>=0.7.3             # ArcFace for IDsim evaluation
+face-alignment>=1.4.0          # head pose estimation [67]
+# Note: insightface requires CUDA build; install via:
+#   pip install insightface --no-deps
+#   pip install onnxruntime-gpu
+
+# ---- Metrics ----
+lpips>=0.1.4                   # LPIPS perceptual metric
+pytorch-fid>=0.3.0             # FID metric
+scipy>=1.12.0                  # for FID matrix square root
+
+# ---- Training utilities ----
+tqdm>=4.66.0
+numpy>=1.26.0
+pandas>=2.2.0
+matplotlib>=3.8.0
+tensorboard>=2.15.0
+pyyaml>=6.0.1
+
+# ---- Self-supervised / DINO ----
+# DINO loaded via torch.hub — no separate install needed
+
+# ---- Watermarking (Section 7) ----
+# stable-signature: https://github.com/facebookresearch/stable_signature
+# Install separately per their instructions
+
+# ---- Development ----
+jupyter>=1.0.0
+ipywidgets>=8.1.0
+
+# ---- Optional: CLUB MI estimator ----
+# Included directly in dsid.py — no separate package needed
+# Reference: https://github.com/Linear95/CLUB
+
+# ---- Optional: DAN FER model ----
+# For EXPAcc evaluation — download checkpoint from:
+# https://github.com/yaoing/DAN
+# Place in checkpoints/dan_affectnet.pth

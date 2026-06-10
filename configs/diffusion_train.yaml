@@ -1,0 +1,59 @@
+# ViDiExPo Diffusion Fine-Tuning Configuration
+# Matches Section 3.2 and Section 4.1 exactly
+
+training:
+  num_epochs: 10
+  batch_size_per_gpu: 2         # SDXL is large; smaller batch per GPU
+  learning_rate: 0.00001        # 1e-5 for MRF fine-tuning
+  adam_betas: [0.9, 0.999]
+  gradient_clip: 1.0
+  log_freq: 50
+  checkpoint_freq: 1000
+  num_workers: 4
+  seed: 42
+  mixed_precision: fp16         # SDXL uses fp16
+
+loss_weights:
+  beta1: 0.5    # L_id  (identity perceptual loss)  — Eq. 34, Section 4.1
+  beta2: 0.1    # L_sem (MSE semantic alignment)    — Eq. 34, Section 4.1
+
+mrf:
+  emb_dim: 512                  # DSID embedding dimension
+  L: 16                         # number of interaction tokens
+  d: 512                        # unified latent dimension for cross-attention
+  num_heads: 8                  # multi-head cross-attention heads
+  # MRF replaces every cross-attention block in the trainable U-Net branch
+  # (Section 3.2.2, Figure 4)
+
+ddim:
+  num_inference_steps: 50       # DDIM reverse steps (Section 4.1)
+  guidance_scale: 7.5           # classifier-free guidance scale
+  image_size: 512               # output resolution (Section 4.1)
+  # ~2 seconds per image on RTX 4090 (Section 4.1)
+
+backbone:
+  model_id: "stabilityai/stable-diffusion-xl-base-1.0"
+  version: "v1.0.0"
+  source: "Hugging Face"
+  # Frozen weights; only MRF parameters are trainable
+
+dual_branch:
+  # Frozen branch: original SDXL cross-attention (text conditioning E_T)
+  # Trainable branch: MRF replaces cross-attention (E_id, E_sem conditioning)
+  # No text conditioning during training (Section 3.2.2)
+  text_conditioning_during_training: false
+
+dataset:
+  celeba_hq_root: data/CelebA-HQ
+  affectnet_root: data/AffectNet
+  # Non-overlapping splits to prevent evaluation contamination (Section 4.1)
+  id_train_range: [0, 20000]
+  id_eval_range:  [20001, 30000]
+  frame_size: 512               # SDXL generates 512×512
+
+hardware:
+  gpus: 4
+  gpu_model: "NVIDIA GeForce RTX 4090"
+  vram_per_gpu_gb: 24
+  distributed: ddp
+  amp: true                     # fp16 for SDXL

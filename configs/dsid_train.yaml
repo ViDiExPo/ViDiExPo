@@ -1,0 +1,91 @@
+# ViDiExPo DSID Training Configuration
+# Matches Section 4.1 and Supplementary S1.1 exactly
+
+training:
+  num_iterations: 100000        # 100k training iterations (Section 3.1.6)
+  batch_size_per_gpu: 4         # per-GPU batch size (Section 4.1)
+  effective_batch_size: 16      # 4 GPUs × 4 = 16
+  learning_rate: 0.0001         # Adam initial lr (Supplementary S1.1)
+  adam_betas: [0.5, 0.999]
+  cosine_decay: true
+  checkpoint_freq: 5000
+  log_freq: 100
+  num_workers: 4
+  seed: 42
+
+loss_weights:
+  lambda1: 1.0    # L_recon  — Eq. 17
+  lambda2: 0.1    # L_percep — Eq. 17
+  lambda3: 1.0    # L_adv    — Eq. 17
+  lambda4: 0.1    # L_MID    — Eq. 17
+  lambda5: 0.1    # L_ML     — Eq. 17
+
+dsid:
+  emb_dim: 512                  # identity and semantic embedding dim
+  num_identities: 4242          # total unique IDs in training set (Table S1)
+  pretrained_backbone: true     # ResNet-50 pretrained on VGGFace2 (Section S1.1)
+
+metric_learning:
+  triplet_margin: 0.01          # t in Eq. 14 (conservative complement to AAM)
+  triplet_distance: l2          # L2 distance metric
+  aam_margin: 0.2               # m (additive angular margin) — Section 3.1.3
+  aam_scale: 30.0               # s (scaling factor) — Section 3.1.3
+
+hal:
+  pooling: average              # HAL pooling strategy: best Semdist per Table 8
+  num_stages: 4                 # ResNet-50 stages: [256, 512, 1024, 2048] channels
+
+club:
+  hidden_dim: 512               # CLUB auxiliary network hidden dimension
+  # MID loss convergence: 3.53±0.75 → 1.03±0.25 over 100k iterations (Section 3.1.6)
+
+dataset:
+  frame_size: 256               # all frames resized to 256×256 (Section S1.1)
+  sources:
+    - HDTF                      # high-definition audio-visual
+    - VoxCeleb                  # large-scale speaker verification
+    - VFHQ                      # video face high-quality
+  min_face_resolution: 256      # discard faces below this resolution
+  max_yaw_deg: 60.0             # reject frames with yaw > 60° (Section S1.1)
+  clips_per_identity: 3         # 2–3 clips per unique identity (Section S1.1)
+  min_frame_gap: 8              # minimum frame index gap for semantic variation
+
+  # Dataset statistics (Table S1)
+  # Total unique IDs:   4,242
+  # Total video clips:  17,108
+  # Total duration:     55 hours
+  # Trained from scratch (TFS): true
+
+  # Data roots (update to actual paths)
+  data_roots:
+    - data/HDTF
+    - data/VoxCeleb
+    - data/VFHQ
+
+augmentation:
+  reconstruction:               # minimal — Section 3.1.6
+    resize: 256
+    normalize: true
+  identity_encoder:             # standard — Section 3.1.6 + Albumentations
+    horizontal_flip: 0.5
+    color_jitter:
+      brightness: 0.3
+      contrast: 0.3
+      saturation: 0.3
+      hue: 0.1
+      p: 0.8
+    gaussian_blur:
+      blur_limit: [3, 7]
+      p: 0.3
+    shift_scale_rotate:
+      shift_limit: 0.1
+      scale_limit: 0.2
+      rotate_limit: 20
+      p: 0.7
+
+hardware:
+  gpus: 4
+  gpu_model: "NVIDIA GeForce RTX 4090"
+  vram_per_gpu_gb: 24
+  distributed: ddp
+  amp: false                    # DSID trains in fp32
