@@ -34,36 +34,36 @@ I_id (identity) + I_ref (reference) + T (text)
 ViDiExPo/
 ├── DSID/                          # Dynamic Semantic and Identity Disentanglement
 │   ├── modules/
-│   │   ├── dsid.py                # Core DSID architecture (Section 3.1)
+│   │   ├── dsid.py                # Core DSID architecture
 │   │   │   ├── IdentityEncoder    # f_id: ResNet-50, metric learning optimized
 │   │   │   ├── SemanticEncoder    # f_sem: ResNet-50 + HAL aggregation
-│   │   │   ├── HAL                # Hierarchical Aggregation Layer (Eq. 16)
-│   │   │   ├── CLUBEstimator      # MI upper bound for MID loss (Eq. 15)
-│   │   │   ├── AAMSoftmax         # Additive angular margin (Section 3.1.3)
+│   │   │   ├── HAL                # Hierarchical Aggregation Layer 
+│   │   │   ├── CLUBEstimator      # MI upper bound for MID loss 
+│   │   │   ├── AAMSoftmax         # Additive angular margin 
 │   │   │   └── DSIDModule         # Full module (train + inference modes)
-│   │   └── losses.py              # DSID training losses (Eq. 17)
+│   │   └── losses.py              # DSID training losses 
 │   │       ├── DSIDLoss           # L = λ1*Lrecon + λ2*Lpercep + λ3*Ladv + λ4*LMID + λ5*LML
 │   │       ├── VGGPerceptualLoss
-│   │       ├── TripletLoss        # Eq. 14, margin=0.01
+│   │       ├── TripletLoss        #  margin=0.01
 │   │       └── AdversarialLoss
 │   ├── data/
 │   │   └── video_frame_dataset.py # Identity-controlled contrastive frame pairs
-│   │       ├── VideoFrameDataset  # HDTF + VoxCeleb + VFHQ (Section 4.1)
+│   │       ├── VideoFrameDataset  # HDTF + VoxCeleb + VFHQ 
 │   │       └── DiffusionFineTuneDataset  # CelebA-HQ × AffectNet
 │   └── train_dsid.py              # DSID training loop (4× RTX 4090)
 │
 ├── diffusion/                     # MRF-integrated diffusion pipeline
-│   ├── mrf.py                     # Mutual Re-Interaction Fusion (Section 3.2.1)
-│   │   ├── MutualReInteractionFusion   # Single MRF block (Eqs. 18–30)
+│   ├── mrf.py                     # Mutual Re-Interaction Fusion
+│   │   ├── MutualReInteractionFusion   # Single MRF block 
 │   │   └── MRFIntegration              # Multi-resolution set for all U-Net levels
-│   ├── pipeline.py                # Full ViDiExPo diffusion pipeline (Section 3.2)
+│   ├── pipeline.py                # Full ViDiExPo diffusion pipeline 
 │   │   ├── ViDiExPoDiffusionPipeline
 │   │   ├── ViDiExPoUNetWrapper    # Dual-branch SDXL + MRF
 │   │   └── DDIMSamplerWrapper     # 50-step DDIM sampling
-│   └── train_diffusion.py         # Diffusion fine-tuning (Eq. 34)
+│   └── train_diffusion.py         # Diffusion fine-tuning 
 │
 ├── configs/
-│   ├── dsid_train.yaml            # DSID hyperparameters (Section 4.1 + S1.1)
+│   ├── dsid_train.yaml            # DSID hyperparameters 
 │   └── diffusion_train.yaml       # Diffusion fine-tuning hyperparameters
 │
 ├── utils/
@@ -71,7 +71,7 @@ ViDiExPo/
 │   └── checkpoint.py              # Save/load with DDP support
 │
 ├── inference.py                   # Full ViDiExPo generation pipeline
-├── evaluate.py                    # All evaluation metrics (Section 5.1)
+├── evaluate.py                    # All evaluation metrics
 └── requirements.txt
 ```
 
@@ -93,7 +93,7 @@ ViDiExPo/
 
 ## Architecture Details
 
-### DSID Module (Section 3.1)
+### DSID Module 
 
 Dual-pathway symmetric architecture:
 
@@ -111,7 +111,7 @@ Dual-pathway symmetric architecture:
 - L_DSID: 4.026 → 1.224 (−69.6%) over 100k iterations
 - L_MID:  3.53±0.75 → 1.03±0.25 (Figure 3)
 
-### MRF Module (Section 3.2.1)
+### MRF Module 
 
 Bidirectional cross-attention between factorized embeddings:
 
@@ -230,17 +230,17 @@ Results show model limitations when both identity and reference inputs have extr
 
 | Parameter | Value | Reference |
 |-----------|-------|-----------|
-| Embedding dim (E_id, E_sem) | 512 | Section 4.1 |
-| DSID loss weights (λ1–λ5) | 1.0, 0.1, 1.0, 0.1, 0.1 | Section 4.1 |
-| Diffusion loss weights (β1, β2) | 0.5, 0.1 | Section 4.1 |
-| AAM-Softmax margin / scale | 0.2 / 30 | Section 3.1.3 |
-| Triplet margin | 0.01 | Section 3.1.6 |
-| DSID training iterations | 100k | Section 3.1.6 |
-| Batch size (DSID) | 4/GPU × 4 GPU = 16 | Section 4.1 |
-| MRF tokens L | 16 | Section 3.2.1 |
-| MRF latent dim d | 512 | Section 3.2.1 |
-| DDIM steps | 50 | Section 4.1 |
-| Output resolution | 512×512 | Section 4.1 |
+| Embedding dim (E_id, E_sem) | 512 |
+| DSID loss weights (λ1–λ5) | 1.0, 0.1, 1.0, 0.1, 0.1 | 
+| Diffusion loss weights (β1, β2) | 0.5, 0.1 | 
+| AAM-Softmax margin / scale | 0.2 / 30 |
+| Triplet margin | 0.01 | 
+| DSID training iterations | 100k | 
+| Batch size (DSID) | 4/GPU × 4 GPU = 16 | 
+| MRF tokens L | 16 | 
+| MRF latent dim d | 512 | 
+| DDIM steps | 50 |
+| Output resolution | 512×512 | 
 
 ---
 
